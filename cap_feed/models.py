@@ -178,6 +178,7 @@ class Alert(models.Model):
     note = models.TextField(blank=True, null=True, default=None)
     references = models.TextField(blank=True, null=True, default=None)
     incidents = models.TextField(blank=True, null=True, default=None)
+    is_expired = models.BooleanField(default=False)
 
     __all_info_added = None
 
