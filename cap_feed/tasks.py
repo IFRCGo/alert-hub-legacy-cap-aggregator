@@ -1,10 +1,11 @@
 from __future__ import absolute_import, unicode_literals
 from celery import shared_task
-
-from .models import Alert, AlertInfo, Feed, ProcessedAlert
+from django.db import models
 from django.utils import timezone
+
 import cap_feed.data_injector as di
 import cap_feed.formats.format_handler as fh
+from .models import Alert, AlertInfo, Feed, ProcessedAlert
 
 
 
@@ -29,11 +30,28 @@ def remove_expired_alerts(self):
     expired_alerts.delete()
     return f"removed {expired_alerts_count} alerts"
 
+
 @shared_task(bind=True)
-def remove_expired_alert_records(self):
-    # Remove records of expired alerts
-    ProcessedAlert.objects.filter(expires__lt=timezone.now()).delete()
-    return f"removed records of expired alerts"
+def remove_expired_alerts(self):
+    # Tag valid alerts that have expired
+    expired_alerts = (
+        Alert.objects.filter(is_expired=False)
+        .annotate(
+            active_alert_info_count=models.Count(
+                'infos',
+                filter=models.Q(
+                    infos__expires__gt=timezone.now(),
+                ),
+            ),
+        )
+        .filter(active_alert_info_count=0)
+    )
+
+    expired_alerts_count = expired_alerts.count()
+    expired_alerts.update(is_expired=True)
+
+    return f"tag {expired_alerts_count} alerts as expired"
+
 
 @shared_task(bind=True)
 def inject_data(self):
