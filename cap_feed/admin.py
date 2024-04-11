@@ -32,8 +32,8 @@ class AlertInfoInline(admin.StackedInline):
     extra = 0
 
 class AlertAdmin(admin.ModelAdmin):
-    list_display = ["url", "country", "feed", "sent", "status", "msg_type", "scope"]
-    list_filter = ["feed", "country"]
+    list_display = ["url", "country", "feed", "sent", "status", "msg_type", "scope", "is_expired"]
+    list_filter = ["is_expired", "feed", "country"]
     search_fields = ["url"]
     fieldsets = [
         ("Administration", {"fields": ["country", "feed"]}),
