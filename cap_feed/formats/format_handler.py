@@ -35,7 +35,7 @@ def get_alerts(feed, all_alert_urls=set()):
             # alerts that are in the database and have not expired but are no longer available on the feed must have been deleted by the alerting authority
             # remove these alerts from the database
             all_alert_urls.update(alert_urls)
-            deleted_alerts = Alert.objects.filter(feed=feed).exclude(url__in=all_alert_urls)
-            deleted_alerts.delete()
+            deleted_alerts = Alert.objects.filter(feed=feed).exclude(url__in=all_alert_urls, is_expired=True)
+            deleted_alerts.update(is_expired=True)
 
     return polled_alerts_count
